@@ -1,0 +1,318 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+name: "meaningful-variable-names"
+description: "AI generates vague variable names like 'data', 'result', 'info' instead of descriptive names"
+version: "1.0.0"
+category: "universal"
+author: "ailint-core"
+
+# State Machine Definition
+states:
+  - idle
+  - detection
+  - analysis
+  - constraint
+  - validation
+  - complete
+
+# Trigger Conditions
+triggers:
+  ai_requests:
+    - "variable"
+    - "function"
+    - "class"
+    - "method"
+    - "assignment"
+  content_patterns:
+    - "= data"
+    - "= result"
+    - "= response"
+    - "= info"
+    - "= temp"
+    - "= obj"
+    - "= val"
+  anti_patterns:
+    - "generic variable names"
+    - "vague naming"
+    - "unclear variables"
+
+# State Transitions
+transitions:
+  idle → detection:
+    on: [vague_variable_detected, generic_naming_found]
+    condition: "meaningless_name_pattern_detected"
+    
+  detection → analysis:
+    on: "variable_context_identified"
+    condition: "descriptive_name_needed"
+    
+  analysis → constraint:
+    on: "naming_analysis_complete"
+    condition: "specific_name_determinable"
+    
+  constraint → validation:
+    on: "descriptive_names_applied"
+    condition: "meaningful_names_generated"
+    
+  validation → complete:
+    on: "validation_passed"
+    condition: "no_vague_names_detected"
+
+# Actions per State
+actions:
+  detection:
+    - scan_for_generic_names
+    - identify_variable_context
+    - detect_naming_patterns
+    
+  analysis:
+    - analyze_variable_purpose
+    - determine_data_type_context
+    - identify_business_domain
+    
+  constraint:
+    - enforce_descriptive_naming
+    - require_context_specific_names
+    - mandate_intention_revealing_names
+    
+  validation:
+    - verify_name_specificity
+    - check_context_appropriateness
+    - ensure_readability_improvement
+
+# AI Limitation Addressed
+limitation:
+  problem: "AI defaults to generic variable names because training data contains many examples with vague naming"
+  
+  context_missing:
+    - "Business domain context"
+    - "Variable purpose and scope"
+    - "Intention-revealing naming principles"
+    - "Code readability impact"
+    
+  constraint_needed:
+    - "Force descriptive names that reveal intention"
+    - "Require context-specific variable names"
+    - "Prevent generic placeholder names"
+    - "Mandate business domain terminology"
+
+# Forbidden Generic Names
+forbidden_names:
+  generic_data: ["data", "info", "result", "response", "output", "input"]
+  generic_objects: ["obj", "item", "element", "thing", "stuff"]
+  generic_values: ["val", "value", "temp", "tmp", "var"]
+  generic_counters: ["i", "j", "k"] # except in simple loops
+  generic_collections: ["list", "array", "dict", "map"]
+
+# Examples
+examples:
+  bad: |
+    # AI generates this - MEANINGLESS NAMES
+    def process_user_data():
+        # What kind of data? From where?
+        data = fetch_user_info()
+        
+        # What result? Result of what?
+        result = []
+        
+        # What response? API response? User response?
+        response = api_call()
+        
+        # Info about what?
+        info = response.get('info')
+        
+        # What items? Users? Products? Orders?
+        for item in data:
+            # What object? What temp value?
+            obj = transform(item)
+            temp = calculate(obj)
+            result.append(temp)
+        
+        return result
+    
+  good: |
+    # AILint enforces this - INTENTION-REVEALING NAMES
+    def process_user_data():
+        # Clear: user profile data from database
+        user_profiles = fetch_user_info()
+        
+        # Clear: processed profiles ready for export
+        processed_profiles = []
+        
+        # Clear: response from external API
+        api_response = api_call()
+        
+        # Clear: user preferences from API
+        user_preferences = api_response.get('preferences')
+        
+        # Clear: individual user profile being processed
+        for user_profile in user_profiles:
+            # Clear: profile enriched with preferences
+            enriched_profile = enrich_with_preferences(user_profile)
+            # Clear: final score calculated for user
+            user_engagement_score = calculate_engagement(enriched_profile)
+            processed_profiles.append({
+                'profile': enriched_profile,
+                'score': user_engagement_score
+            })
+        
+        return processed_profiles
+
+# Context-Specific Naming Patterns
+naming_patterns:
+  api_responses:
+    bad: ["response", "data", "result"]
+    good: ["user_response", "payment_data", "search_results"]
+    
+  collections:
+    bad: ["list", "array", "items"]
+    good: ["user_list", "product_catalog", "order_items"]
+    
+  calculations:
+    bad: ["result", "output", "value"]
+    good: ["total_price", "user_score", "conversion_rate"]
+    
+  database_queries:
+    bad: ["data", "rows", "records"]
+    good: ["user_accounts", "order_history", "product_inventory"]
+
+# Language-Specific Adaptations
+language_adaptations:
+  python:
+    prefer: "snake_case with descriptive names"
+    avoid: "single letter variables except loop counters"
+    pattern: "user_engagement_score = calculate_engagement(user_profile)"
+    
+  javascript:
+    prefer: "camelCase with intention-revealing names"
+    avoid: "abbreviated or generic names"
+    pattern: "const userEngagementScore = calculateEngagement(userProfile)"
+    
+  java:
+    prefer: "camelCase with full descriptive names"
+    avoid: "Hungarian notation and abbreviations"
+    pattern: "UserProfile enrichedUserProfile = enrichWithPreferences(userProfile)"
+    
+  csharp:
+    prefer: "PascalCase for public, camelCase for private"
+    avoid: "Abbreviated variable names"
+    pattern: "var userEngagementScore = CalculateEngagement(userProfile)"
+
+# Domain-Specific Naming
+domain_naming:
+  ecommerce:
+    entities: ["customer", "product", "order", "cart", "payment"]
+    avoid: ["user", "item", "data", "info"]
+    
+  finance:
+    entities: ["account", "transaction", "balance", "portfolio"]
+    avoid: ["data", "record", "value", "amount"]
+    
+  healthcare:
+    entities: ["patient", "diagnosis", "treatment", "appointment"]
+    avoid: ["user", "info", "data", "record"]
+
+# Validation Rules
+validation_rules:
+  no_generic_names:
+    forbidden_patterns: ["^(data|result|response|info|temp|obj|val)$"]
+    message: "Generic variable name detected, use descriptive name"
+    
+  minimum_name_length:
+    min_chars: 4
+    exceptions: ["id", "url", "api", "ui"]
+    message: "Variable name too short, use descriptive name"
+    
+  context_appropriateness:
+    required: "name reflects variable purpose and domain"
+    message: "Variable name doesn't reflect its purpose or context"
+
+# Naming Guidelines
+naming_guidelines:
+  intention_revealing:
+    - "Name should explain why it exists"
+    - "Name should explain what it does"
+    - "Name should explain how it's used"
+    
+  avoid_mental_mapping:
+    - "Don't make readers decode abbreviations"
+    - "Use pronounceable names"
+    - "Use searchable names"
+    
+  be_precise:
+    - "Distinguish between similar concepts"
+    - "Use domain-specific terminology"
+    - "Prefer longer descriptive names over short cryptic ones"
+
+# Success Metrics
+success_metrics:
+  - descriptive_naming: "> 95% variables with meaningful names"
+  - generic_name_elimination: "< 5% generic names (data, result, etc)"
+  - readability_improvement: "> 80% easier to understand code purpose"
+  - context_clarity: "> 90% variables clearly indicate their purpose"
+
+# Test Cases
+test_cases:
+  - name: "detect_generic_variable"
+    input: "variable assignment with 'data = api_call()'"
+    expected_state: "constraint"
+    expected_output: "descriptive name required"
+    
+  - name: "enforce_meaningful_names"
+    input: "function with multiple generic variables"
+    expected_state: "constraint"
+    expected_output: "context-specific names enforced"
+    
+  - name: "validate_descriptive_names"
+    input: "code with intention-revealing variable names"
+    expected_state: "complete"
+    expected_output: "meaningful naming validated"
+---
+
+# Meaningful Variable Names
+
+## 🎯 Rule Purpose
+
+**Eliminates vague variable names by enforcing intention-revealing, context-specific naming.**
+
+This rule detects generic variable names like 'data', 'result', 'info' and forces descriptive names that clearly communicate purpose and context.
+
+## 🚫 AI Limitation Resolved
+
+**Problem**: AI generates meaningless variable names because:
+- Training data contains many examples with lazy naming
+- Generic names appear simpler in isolated code snippets
+- AI doesn't understand business domain context
+- No awareness of code readability impact
+
+**Solution**: This state machine detects generic naming patterns and enforces descriptive, intention-revealing names.
+
+## ⚡ How It Works
+
+1. **Detection**: Scans for generic variable names and vague naming patterns
+2. **Analysis**: Analyzes variable context, purpose, and business domain
+3. **Constraint**: Enforces descriptive naming that reveals intention
+4. **Validation**: Ensures names clearly communicate purpose and context
+
+## 💡 Key Constraints Applied
+
+- **No Generic Names**: Eliminate 'data', 'result', 'response', 'info', 'temp'
+- **Context-Specific**: Names must reflect business domain and purpose
+- **Intention-Revealing**: Variables explain why they exist and how they're used
+- **Searchable Names**: Prefer descriptive names over abbreviations
+- **Domain Terminology**: Use business-specific vocabulary
+
+## 🎯 Expected Results
+
+After applying this rule, your AI will generate:
+- ✅ Variables that clearly indicate their purpose
+- ✅ Context-specific naming using domain terminology
+- ✅ Self-documenting code that reduces need for comments
+- ✅ Consistent naming patterns across the codebase
+- ❌ No generic 'data', 'result', 'response' variables
+- ❌ No single-letter variables outside simple loops
+- ❌ No abbreviations that require mental decoding
