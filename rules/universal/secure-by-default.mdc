@@ -1,0 +1,298 @@
+---
+name: "secure-by-default"
+description: "AI generates insecure code patterns instead of security-first implementations"
+version: "1.1.0"
+category: "universal"
+author: "ailint-core"
+
+# State Machine Definition
+states:
+  - idle
+  - detection
+  - analysis
+  - constraint
+  - validation
+  - complete
+
+# Trigger Conditions
+triggers:
+  ai_requests:
+    - "database query"
+    - "user input"
+    - "authentication"
+    - "password"
+    - "sql"
+    - "api endpoint"
+    - "form validation"
+  content_patterns:
+    - "SELECT.*\\+.*"              # SQL concatenation
+    - "f\"SELECT.*{.*}\""          # Python f-string SQL
+    - "query.*\\+.*user"           # Dynamic SQL  
+    - "md5\\(|sha1\\("            # Weak hashing
+    - "password.*==.*password"     # Plain text comparison
+  anti_patterns:
+    - "sql injection"
+    - "xss vulnerability"
+    - "plain text passwords"
+    - "weak encryption"
+
+# State Transitions
+transitions:
+  idle → detection:
+    on: [security_risk_detected, insecure_pattern_found]
+    condition: "vulnerability_pattern_matches"
+    
+  detection → analysis:
+    on: "security_context_identified"
+    condition: "exploit_risk_confirmed"
+    
+  analysis → constraint:
+    on: "vulnerability_analysis_complete"
+    condition: "secure_alternative_available"
+    
+  constraint → validation:
+    on: "security_patterns_applied"
+    condition: "secure_implementation_generated"
+    
+  validation → complete:
+    on: "security_validation_passed"
+    condition: "no_vulnerabilities_detected"
+
+# Actions per State
+actions:
+  detection:
+    - scan_for_sql_injection_patterns
+    - identify_weak_crypto_usage
+    - detect_input_validation_gaps
+    
+  analysis:
+    - evaluate_attack_vectors
+    - assess_data_sensitivity
+    - identify_security_requirements
+    
+  constraint:
+    - enforce_parameterized_queries
+    - require_strong_password_hashing
+    - mandate_input_validation
+    
+  validation:
+    - verify_sql_injection_prevention
+    - check_crypto_strength
+    - validate_input_sanitization
+
+# AI Limitation Addressed
+limitation:
+  problem: "AI generates vulnerable code patterns because training data contains insecure examples"
+  
+  context_missing:
+    - "OWASP Top 10 vulnerabilities"
+    - "Parameterized query importance"
+    - "Input validation requirements"
+    - "Secure hashing algorithms"
+    
+  constraint_needed:
+    - "Force parameterized queries over string concatenation"
+    - "Require input validation and sanitization"
+    - "Enforce secure password hashing (bcrypt, scrypt, argon2)"
+    - "Prevent dangerous functions (eval, direct SQL)"
+
+# Examples
+examples:
+  bad: |
+    # AI generates this - SECURITY NIGHTMARE
+    import hashlib
+    import sqlite3
+    
+    class UserService:
+        def __init__(self, db_path):
+            self.db = sqlite3.connect(db_path)
+        
+        def login(self, username, password):
+            # SQL INJECTION VULNERABILITY
+            query = f"SELECT * FROM users WHERE username = '{username}'"
+            user = self.db.execute(query).fetchone()
+            
+            # WEAK PASSWORD HASHING
+            password_hash = hashlib.md5(password.encode()).hexdigest()
+            
+            # PLAIN TEXT COMPARISON
+            if user and user['password'] == password_hash:
+                return user
+        
+        def create_user(self, user_data):
+            # NO INPUT VALIDATION
+            username = user_data['username']  # Could be anything!
+            password = user_data['password']  # No strength check!
+            
+            # MORE SQL INJECTION
+            query = f"INSERT INTO users (username, password) VALUES ('{username}', '{password}')"
+            self.db.execute(query)
+    
+  good: |
+    # AILint enforces this - SECURITY FIRST
+    import bcrypt
+    import sqlite3
+    import re
+    
+    class UserService:
+        def __init__(self, db_path):
+            self.db = sqlite3.connect(db_path)
+        
+        def login(self, username, password):
+            # PARAMETERIZED QUERY - SQL injection impossible
+            query = "SELECT * FROM users WHERE username = ?"
+            user = self.db.execute(query, (username,)).fetchone()
+            
+            # SECURE PASSWORD VERIFICATION
+            if user and bcrypt.checkpw(password.encode(), user['password_hash']):
+                return user
+            
+            return None
+        
+        def create_user(self, user_data):
+            # INPUT VALIDATION FIRST
+            username = self._validate_username(user_data['username'])
+            password = self._validate_password(user_data['password'])
+            
+            # SECURE PASSWORD HASHING
+            password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+            
+            # PARAMETERIZED QUERY
+            query = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
+            self.db.execute(query, (username, password_hash))
+        
+        def _validate_username(self, username):
+            if not username or len(username) < 3:
+                raise ValueError("Username must be at least 3 characters")
+            if not re.match("^[a-zA-Z0-9_]+$", username):
+                raise ValueError("Username contains invalid characters")
+            return username
+        
+        def _validate_password(self, password):
+            if not password or len(password) < 8:
+                raise ValueError("Password must be at least 8 characters")
+            if not re.search(r"[A-Z]", password):
+                raise ValueError("Password must contain uppercase letter")
+            return password
+
+# Security Patterns
+security_patterns:
+  sql_injection_prevention:
+    bad: "f\"SELECT * FROM users WHERE id = {user_id}\""
+    good: "cursor.execute(\"SELECT * FROM users WHERE id = ?\", (user_id,))"
+    
+  password_hashing:
+    bad: "hashlib.md5(password.encode()).hexdigest()"
+    good: "bcrypt.hashpw(password.encode(), bcrypt.gensalt())"
+    
+  input_validation:
+    bad: "username = request.data['username']"
+    good: "username = validate_username(request.data.get('username', ''))"
+
+# Language-Specific Security
+language_security:
+  python:
+    avoid: ["f-string in SQL", "hashlib.md5", "eval()", "pickle.loads()"]
+    enforce: ["parameterized queries", "bcrypt", "input validation"]
+    
+  javascript:
+    avoid: ["template literals in SQL", "innerHTML with user data", "eval()"]
+    enforce: ["prepared statements", "bcrypt", "textContent"]
+    
+  java:
+    avoid: ["String concatenation in SQL", "MessageDigest MD5"]
+    enforce: ["PreparedStatement", "BCrypt", "input sanitization"]
+    
+  csharp:
+    avoid: ["String.Format in SQL", "MD5 hashing"]
+    enforce: ["SqlParameter", "BCrypt.Net", "input validation"]
+
+# Validation Rules
+validation_rules:
+  no_sql_injection:
+    forbidden_patterns: ["f\"SELECT.*{", "query.*\\+", "\".*{.*}.*FROM"]
+    message: "SQL injection risk detected, use parameterized queries"
+    
+  strong_password_hashing:
+    required_patterns: ["bcrypt", "scrypt", "argon2"]
+    forbidden_patterns: ["md5", "sha1", "sha256"]
+    message: "Weak password hashing detected, use bcrypt/scrypt/argon2"
+    
+  input_validation:
+    required: "validation before database operations"
+    message: "Input validation missing, validate all user input"
+
+# OWASP Top 10 Coverage
+owasp_coverage:
+  - "A01: Broken Access Control"
+  - "A02: Cryptographic Failures" 
+  - "A03: Injection"
+  - "A07: Identity/Authentication Failures"
+
+# Success Metrics
+success_metrics:
+  - sql_injection_prevention: "> 99% parameterized queries"
+  - strong_crypto_usage: "> 95% secure hashing algorithms"
+  - input_validation_coverage: "> 90% validated inputs"
+  - vulnerability_reduction: "0 known security patterns"
+
+# Test Cases
+test_cases:
+  - name: "detect_sql_injection"
+    input: "database query with f-string"
+    expected_state: "constraint"
+    expected_output: "parameterized query enforced"
+    
+  - name: "enforce_strong_hashing"
+    input: "password hashing request"
+    expected_state: "constraint"
+    expected_output: "bcrypt required"
+    
+  - name: "require_input_validation"
+    input: "user input processing"
+    expected_state: "constraint"
+    expected_output: "validation enforced"
+---
+
+# Secure By Default
+
+## 🎯 Rule Purpose
+
+**Prevents AI from generating vulnerable code by enforcing security-first patterns.**
+
+This rule detects common security anti-patterns and forces secure alternatives, protecting against OWASP Top 10 vulnerabilities.
+
+## 🚫 AI Limitation Resolved
+
+**Problem**: AI generates insecure code because:
+- Training data contains vulnerable examples
+- Security is often an afterthought in code samples
+- AI doesn't understand attack vectors
+- Quick solutions are often insecure
+
+**Solution**: This state machine detects security risks and enforces secure patterns.
+
+## ⚡ How It Works
+
+1. **Detection**: Scans for SQL injection, weak crypto, missing validation
+2. **Analysis**: Evaluates security context and attack vectors
+3. **Constraint**: Forces secure alternatives (parameterized queries, bcrypt)
+4. **Validation**: Ensures no known vulnerability patterns remain
+
+## 🔒 Key Security Constraints
+
+- **SQL Injection**: Force parameterized queries, never string concatenation
+- **Strong Crypto**: Enforce bcrypt/scrypt/argon2, block MD5/SHA1
+- **Input Validation**: Require validation for all user input
+- **Secure Defaults**: Safe patterns by default, not afterthoughts
+
+## 🎯 Expected Results
+
+After applying this rule, your AI will generate:
+- ✅ Parameterized database queries (SQL injection proof)
+- ✅ Strong password hashing with bcrypt/scrypt/argon2
+- ✅ Input validation and sanitization
+- ✅ Secure authentication patterns
+- ❌ No SQL injection vulnerabilities
+- ❌ No weak cryptographic functions
+- ❌ No unvalidated user input
