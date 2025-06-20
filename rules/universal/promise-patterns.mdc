@@ -1,0 +1,315 @@
+---
+name: "promise-patterns"
+description: "AI generates blocking/callback code instead of modern asynchronous patterns"
+version: "1.0.0"
+category: "universal"
+author: "ailint-core"
+
+# State Machine Definition
+states:
+  - idle
+  - detection
+  - analysis
+  - constraint
+  - validation
+  - complete
+
+# Trigger Conditions
+triggers:
+  ai_requests:
+    - "api call"
+    - "fetch data"
+    - "database operation"
+    - "file read"
+    - "http request"
+    - "asynchronous"
+    - "concurrent"
+  content_patterns:
+    - "sleep\\("                    # Blocking sleep
+    - "time\\.sleep"               # Python blocking
+    - "Thread\\.sleep"             # Java blocking
+    - "setTimeout.*function"        # Callback patterns
+    - "\\.get\\(\\).*\\.get\\("    # Chained blocking calls
+  anti_patterns:
+    - "blocking operations"
+    - "callback hell"
+    - "sequential blocking"
+    - "nested callbacks"
+
+# State Transitions
+transitions:
+  idle → detection:
+    on: [blocking_operation_detected, async_operation_request]
+    condition: "synchronous_pattern_found"
+    
+  detection → analysis:
+    on: "blocking_context_identified"
+    condition: "async_pattern_applicable"
+    
+  analysis → constraint:
+    on: "async_analysis_complete"
+    condition: "promise_pattern_preferred"
+    
+  constraint → validation:
+    on: "async_patterns_applied"
+    condition: "non_blocking_generated"
+    
+  validation → complete:
+    on: "validation_passed"
+    condition: "no_blocking_patterns_remain"
+
+# Actions per State
+actions:
+  detection:
+    - scan_for_blocking_operations
+    - identify_sequential_calls
+    - detect_callback_patterns
+    
+  analysis:
+    - evaluate_concurrency_opportunities
+    - identify_independent_operations
+    - assess_error_handling_needs
+    
+  constraint:
+    - enforce_async_patterns
+    - require_concurrent_execution
+    - mandate_proper_error_handling
+    
+  validation:
+    - verify_non_blocking_execution
+    - check_error_handling
+    - validate_performance_patterns
+
+# AI Limitation Addressed
+limitation:
+  problem: "AI generates blocking/sequential code because it's simpler in training examples"
+  
+  context_missing:
+    - "Asynchronous programming benefits"
+    - "Concurrency vs parallelism concepts"
+    - "Error handling in async contexts"
+    - "Performance implications of blocking"
+    
+  constraint_needed:
+    - "Force async patterns over blocking operations"
+    - "Require concurrent execution for independent operations"
+    - "Enforce proper async error handling"
+    - "Prevent blocking the main thread"
+
+# Examples
+examples:
+  bad: |
+    # AI generates this - BLOCKING NIGHTMARE
+    import time
+    import requests
+    
+    def fetch_user_data(user_ids):
+        results = []
+        for user_id in user_ids:
+            # BLOCKING: Each request waits for the previous one
+            response = requests.get(f"/users/{user_id}")
+            user_data = response.json()
+            
+            # MORE BLOCKING: Sleep between requests
+            time.sleep(1)  # Why?!
+            
+            # SEQUENTIAL PROCESSING: Could be parallel
+            profile = requests.get(f"/profiles/{user_id}").json()
+            preferences = requests.get(f"/preferences/{user_id}").json()
+            
+            results.append({
+                "user": user_data,
+                "profile": profile, 
+                "preferences": preferences
+            })
+        
+        return results
+    
+    # Usage: Takes forever with large lists
+    users = fetch_user_data([1, 2, 3, 4, 5])  # 15+ seconds!
+    
+  good: |
+    # AILint enforces this - CONCURRENT EXECUTION
+    import asyncio
+    import aiohttp
+    
+    async def fetch_user_data(user_ids):
+        async with aiohttp.ClientSession() as session:
+            # CONCURRENT: All requests happen simultaneously
+            tasks = [fetch_single_user(session, user_id) for user_id in user_ids]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Filter out exceptions, log errors
+            successful_results = []
+            for result in results:
+                if isinstance(result, Exception):
+                    print(f"Error fetching user: {result}")
+                else:
+                    successful_results.append(result)
+            
+            return successful_results
+    
+    async def fetch_single_user(session, user_id):
+        try:
+            # PARALLEL: Fetch all user data concurrently
+            user_task = fetch_json(session, f"/users/{user_id}")
+            profile_task = fetch_json(session, f"/profiles/{user_id}")
+            prefs_task = fetch_json(session, f"/preferences/{user_id}")
+            
+            user, profile, preferences = await asyncio.gather(
+                user_task, profile_task, prefs_task
+            )
+            
+            return {
+                "user": user,
+                "profile": profile,
+                "preferences": preferences
+            }
+        except Exception as e:
+            # PROPER ERROR HANDLING
+            print(f"Failed to fetch user {user_id}: {e}")
+            raise
+    
+    async def fetch_json(session, url):
+        async with session.get(url) as response:
+            response.raise_for_status()
+            return await response.json()
+    
+    # Usage: Much faster with concurrent execution
+    users = asyncio.run(fetch_user_data([1, 2, 3, 4, 5]))  # ~2 seconds!
+
+# Language-Specific Adaptations
+language_adaptations:
+  python:
+    prefer: "asyncio.gather() for concurrent operations"
+    avoid: "time.sleep() and sequential requests.get()"
+    pattern: "async def function(): await asyncio.gather(*tasks)"
+    
+  javascript:
+    prefer: "Promise.all() for parallel execution"
+    avoid: "Sequential await and setTimeout callbacks"
+    pattern: "const results = await Promise.all(promises)"
+    
+  java:
+    prefer: "CompletableFuture.allOf() for concurrent tasks"
+    avoid: "Thread.sleep() and sequential blocking calls"
+    pattern: "CompletableFuture.allOf(futures).join()"
+    
+  csharp:
+    prefer: "Task.WhenAll() for parallel async operations"
+    avoid: "Thread.Sleep() and sequential awaits"
+    pattern: "await Task.WhenAll(tasks)"
+
+# Performance Patterns
+performance_patterns:
+  concurrent_execution:
+    use: "Execute independent operations simultaneously"
+    avoid: "Sequential execution of unrelated operations"
+    benefit: "N operations take ~1x time instead of Nx time"
+    
+  error_tolerance:
+    use: "Partial success patterns with error logging"
+    avoid: "All-or-nothing execution"
+    benefit: "Resilient to individual operation failures"
+    
+  resource_efficiency:
+    use: "Connection pooling and session reuse"
+    avoid: "Creating new connections per operation"
+    benefit: "Reduced resource overhead"
+
+# Validation Rules
+validation_rules:
+  no_blocking_operations:
+    forbidden_patterns: ["time.sleep", "Thread.sleep", "blocking_get()"]
+    message: "Blocking operation detected, use async patterns"
+    
+  concurrent_independent_ops:
+    detect: "sequential execution of independent operations"
+    suggest: "concurrent execution patterns"
+    message: "Independent operations should run concurrently"
+    
+  proper_error_handling:
+    required_patterns: ["try/except", "error handling", "partial success"]
+    message: "Async operations need proper error handling"
+
+# Concurrency Patterns
+concurrency_patterns:
+  gather_pattern:
+    description: "Execute multiple async operations concurrently"
+    languages: ["Python: asyncio.gather", "JS: Promise.all", "C#: Task.WhenAll"]
+    
+  pipeline_pattern:
+    description: "Chain async operations efficiently"
+    languages: ["Python: async generators", "JS: async iterators"]
+    
+  error_boundary_pattern:
+    description: "Handle failures gracefully in concurrent operations"
+    languages: ["Return exceptions", "Partial success handling"]
+
+# Success Metrics
+success_metrics:
+  - blocking_elimination: "> 95% non-blocking operations"
+  - concurrency_usage: "> 80% concurrent independent operations"
+  - performance_improvement: "> 5x faster execution"
+  - error_resilience: "> 90% partial failure handling"
+
+# Test Cases
+test_cases:
+  - name: "detect_blocking_operations"
+    input: "sequential API calls with time.sleep"
+    expected_state: "constraint"
+    expected_output: "concurrent async pattern enforced"
+    
+  - name: "enforce_concurrent_execution"
+    input: "independent operations executed sequentially"
+    expected_state: "constraint"
+    expected_output: "parallel execution required"
+    
+  - name: "validate_async_patterns"
+    input: "async function with proper concurrency"
+    expected_state: "complete"
+    expected_output: "async patterns validated"
+---
+
+# Promise Patterns
+
+## 🎯 Rule Purpose
+
+**Eliminates blocking operations by enforcing concurrent asynchronous patterns.**
+
+This rule detects blocking/sequential code and forces modern async patterns with proper concurrency and error handling.
+
+## 🚫 AI Limitation Resolved
+
+**Problem**: AI generates blocking code because:
+- Sequential examples are simpler in training data
+- Blocking operations appear straightforward
+- Concurrency concepts are complex
+- Error handling is often omitted
+
+**Solution**: This state machine detects blocking patterns and enforces async concurrency.
+
+## ⚡ How It Works
+
+1. **Detection**: Scans for blocking operations and sequential calls
+2. **Analysis**: Identifies opportunities for concurrent execution
+3. **Constraint**: Forces async patterns and concurrent execution
+4. **Validation**: Ensures non-blocking, performant code
+
+## 💡 Key Constraints Applied
+
+- **No Blocking**: Replace sleep/blocking calls with async patterns
+- **Concurrent Execution**: Run independent operations simultaneously
+- **Proper Error Handling**: Handle partial failures gracefully
+- **Performance First**: Optimize for throughput and responsiveness
+- **Resource Efficiency**: Use connection pooling and session reuse
+
+## 🎯 Expected Results
+
+After applying this rule, your AI will generate:
+- ✅ Concurrent execution of independent operations
+- ✅ Non-blocking async patterns
+- ✅ Proper error handling in async contexts
+- ✅ 5x+ performance improvements
+- ❌ No blocking sleep/wait operations
+- ❌ No sequential execution of independent tasks
