@@ -1,0 +1,281 @@
+---
+name: "prefer-early-returns"
+description: "AI generates deeply nested if-else chains instead of early return patterns"
+version: "1.1.0"
+category: "universal"
+author: "ailint-core"
+
+# State Machine Definition
+states:
+  - idle
+  - detection
+  - analysis
+  - constraint
+  - validation
+  - complete
+
+# Trigger Conditions
+triggers:
+  ai_requests:
+    - "validation"
+    - "error handling"
+    - "condition check"
+    - "if statement"
+    - "input validation"
+  content_patterns:
+    - "if.*:\\s*\\n\\s*if.*:\\s*\\n\\s*if"  # Python 3+ nested ifs
+    - "if.*{[\\s\\S]*if.*{[\\s\\S]*if.*{"   # JS/Java/C# nested ifs
+    - "else.*:\\s*\\n\\s*if.*:\\s*\\n\\s*if" # Python nested else-if
+  anti_patterns:
+    - "deeply nested"
+    - "pyramid of doom"
+    - "arrow anti-pattern"
+    - "nested conditions"
+
+# State Transitions
+transitions:
+  idle → detection:
+    on: [nested_conditions_found]
+    condition: "nesting_depth_exceeds_2"
+    
+  detection → analysis:
+    on: "deep_nesting_confirmed"
+    condition: "early_return_applicable"
+    
+  analysis → constraint:
+    on: "analysis_complete"
+    condition: "guard_clauses_possible"
+    
+  constraint → validation:
+    on: "early_returns_applied"
+    condition: "nesting_reduced"
+    
+  validation → complete:
+    on: "validation_passed"
+    condition: "max_nesting_2_achieved"
+
+# Actions per State
+actions:
+  detection:
+    - count_nesting_levels
+    - identify_condition_chains
+    - detect_buried_logic
+    
+  analysis:
+    - evaluate_guard_clause_opportunities
+    - identify_error_conditions
+    - assess_happy_path_extraction
+    
+  constraint:
+    - enforce_early_returns
+    - require_guard_clauses
+    - flatten_nested_structure
+    
+  validation:
+    - verify_nesting_depth
+    - check_guard_clause_usage
+    - ensure_readable_flow
+
+# AI Limitation Addressed
+limitation:
+  problem: "AI generates deeply nested if-else chains that bury logic and create unreadable code"
+  
+  context_missing:
+    - "Early return patterns and benefits"
+    - "Guard clause concept"
+    - "Cyclomatic complexity impact"
+    - "Code readability principles"
+    
+  constraint_needed:
+    - "Force early returns for error conditions"
+    - "Limit nesting depth to maximum 2 levels"
+    - "Promote guard clause patterns"
+    - "Extract happy path to top level"
+
+# Examples
+examples:
+  bad: |
+    # AI generates this - PYRAMID OF DOOM
+    def process_user(user):
+        if user:
+            if user.get('is_active'):
+                if user.get('email'):
+                    if '@' in user['email']:
+                        if user.get('has_permission'):
+                            # Actual logic buried 5 levels deep!
+                            return user['email'].lower()
+                        else:
+                            raise ValueError('No permission')
+                    else:
+                        raise ValueError('Invalid email')
+                else:
+                    raise ValueError('Email required')
+            else:
+                raise ValueError('User inactive')
+        else:
+            raise ValueError('User required')
+    
+    # Usage - hard to read, easy to miss edge cases
+    result = process_user(user_data)
+    
+  good: |
+    # AILint enforces this - CLEAN GUARD CLAUSES
+    def process_user(user):
+        # Guard clauses - fail fast, clear flow
+        if not user:
+            raise ValueError('User required')
+        if not user.get('is_active'):
+            raise ValueError('User inactive')
+        if not user.get('email'):
+            raise ValueError('Email required')
+        if '@' not in user['email']:
+            raise ValueError('Invalid email')
+        if not user.get('has_permission'):
+            raise ValueError('No permission')
+        
+        # Happy path logic at top level - readable!
+        return user['email'].lower()
+    
+    # Usage - clear flow, obvious validations
+    result = process_user(user_data)
+
+# Language-Specific Adaptations
+language_adaptations:
+  python:
+    prefer: "Early return with raise for error conditions"
+    avoid: "Deeply nested if/elif chains"
+    pattern: "if not condition: raise ValueError('message')"
+    
+  javascript:
+    prefer: "Guard clauses with throw for validation"
+    avoid: "Nested if-else pyramids"
+    pattern: "if (!condition) throw new Error('message')"
+    
+  java:
+    prefer: "Early return with exception throwing"
+    avoid: "Nested if statements in methods"
+    pattern: "if (condition == null) throw new IllegalArgumentException()"
+    
+  csharp:
+    prefer: "Guard clauses with ArgumentException"
+    avoid: "Deeply nested conditional blocks"
+    pattern: "if (condition == null) throw new ArgumentNullException()"
+
+# Nesting Patterns
+nesting_patterns:
+  guard_clause:
+    description: "Check error conditions early and return/throw immediately"
+    benefit: "Reduces cognitive load, clear error handling"
+    
+  happy_path_extraction:
+    description: "Keep main logic at minimal nesting level"
+    benefit: "Easy to understand primary function purpose"
+    
+  fail_fast:
+    description: "Validate inputs immediately, don't defer checks"
+    benefit: "Errors caught early, better debugging"
+
+# Validation Rules
+validation_rules:
+  max_nesting_depth:
+    limit: 2
+    message: "Nesting depth exceeds 2 levels, use early returns"
+    
+  guard_clause_pattern:
+    required: "error conditions first with early return"
+    message: "Use guard clauses for validation, happy path last"
+    
+  cyclomatic_complexity:
+    max_complexity: 5
+    message: "High complexity detected, flatten with guard clauses"
+
+# Readability Metrics
+readability_metrics:
+  nesting_depth: "< 2 levels average"
+  cyclomatic_complexity: "< 5 per function"
+  lines_before_happy_path: "< 10 validation lines"
+  error_condition_clarity: "> 90% obvious error cases"
+
+# Common Nested Patterns
+common_patterns:
+  validation_chains:
+    bad: "nested if for each validation"
+    good: "sequential guard clauses"
+    
+  permission_checks:
+    bad: "nested if for each permission level"
+    good: "early return for missing permissions"
+    
+  data_processing:
+    bad: "nested if for each data transformation step"
+    good: "early return for invalid data states"
+
+# Success Metrics
+success_metrics:
+  - nesting_reduction: "> 80% functions with ≤2 nesting levels"
+  - readability_improvement: "> 70% less cognitive complexity"
+  - error_clarity: "> 90% obvious failure points"
+  - maintainability: "> 85% easier to modify/extend"
+
+# Test Cases
+test_cases:
+  - name: "detect_deep_nesting"
+    input: "function with 4+ nested if statements"
+    expected_state: "constraint"
+    expected_output: "guard clauses enforced"
+    
+  - name: "enforce_guard_clauses"
+    input: "validation logic with nested conditions"
+    expected_state: "constraint"
+    expected_output: "early returns required"
+    
+  - name: "validate_flat_structure"
+    input: "function with guard clauses and single happy path"
+    expected_state: "complete"
+    expected_output: "early return pattern validated"
+---
+
+# Prefer Early Returns
+
+## 🎯 Rule Purpose
+
+**Eliminates deeply nested if-else chains by enforcing early return patterns.**
+
+This rule detects "pyramid of doom" nested conditions and forces the use of guard clauses and early returns for cleaner, more readable code.
+
+## 🚫 AI Limitation Resolved
+
+**Problem**: AI creates deeply nested if-else chains because:
+- Training data shows "check everything first" patterns
+- Nested conditions seem logical in isolation
+- Happy path logic gets buried deep inside
+- Error handling is mixed with business logic
+
+**Solution**: This state machine detects nesting patterns and enforces guard clause patterns.
+
+## ⚡ How It Works
+
+1. **Detection**: Scans for nested if-else chains deeper than 2 levels
+2. **Analysis**: Evaluates if early returns can flatten the structure
+3. **Constraint**: Forces guard clause patterns with early returns
+4. **Validation**: Ensures maximum nesting depth and clear flow
+
+## 💡 Key Constraints Applied
+
+- **Max Nesting**: 2 levels maximum for any function
+- **Guard Clauses**: Error conditions first with early returns
+- **Happy Path Last**: Main logic at top level, not buried
+- **Fail Fast**: Validate inputs immediately
+- **Clear Flow**: Obvious error conditions and success path
+
+## 🎯 Expected Results
+
+After applying this rule, your AI will generate:
+- ✅ Guard clauses for input validation
+- ✅ Early returns for error conditions  
+- ✅ Happy path logic at top level
+- ✅ Maximum 2 levels of nesting
+- ✅ Clear, readable function flow
+- ❌ No pyramid of doom structures
+- ❌ No deeply buried logic
+- ❌ No complex nested conditions
