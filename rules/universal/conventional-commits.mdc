@@ -1,0 +1,302 @@
+---
+name: "conventional-commits"
+description: "AI generates inconsistent, vague commit messages instead of conventional commit format"
+version: "1.0.0"
+category: "universal"
+author: "ailint-core"
+
+# State Machine Definition
+states:
+  - idle
+  - detection
+  - analysis
+  - constraint
+  - validation
+  - complete
+
+# Trigger Conditions
+triggers:
+  ai_requests:
+    - "commit message"
+    - "git commit"
+    - "commit"
+    - "changelog"
+    - "version control"
+  content_patterns:
+    - "git commit -m"
+    - "commit.*message"
+    - "git add.*commit"
+  anti_patterns:
+    - "fix stuff"
+    - "update code"
+    - "changes"
+    - "misc updates"
+
+# State Transitions
+transitions:
+  idle → detection:
+    on: [commit_message_request]
+    condition: "git_commit_context_detected"
+    
+  detection → analysis:
+    on: "commit_context_identified"
+    condition: "message_format_needed"
+    
+  analysis → constraint:
+    on: "change_analysis_complete"
+    condition: "conventional_format_applicable"
+    
+  constraint → validation:
+    on: "conventional_format_applied"
+    condition: "structured_message_generated"
+    
+  validation → complete:
+    on: "validation_passed"
+    condition: "conventional_commit_achieved"
+
+# Actions per State
+actions:
+  detection:
+    - identify_commit_request
+    - scan_for_change_context
+    - detect_vague_messages
+    
+  analysis:
+    - categorize_change_type
+    - assess_breaking_changes
+    - identify_scope_and_impact
+    
+  constraint:
+    - enforce_conventional_format
+    - require_descriptive_subject
+    - mandate_proper_type_prefix
+    
+  validation:
+    - verify_conventional_format
+    - check_message_clarity
+    - ensure_actionable_description
+
+# AI Limitation Addressed
+limitation:
+  problem: "AI generates vague, inconsistent commit messages that don't follow conventions"
+  
+  context_missing:
+    - "Conventional Commits specification"
+    - "Change type categorization (feat/fix/docs/etc)"
+    - "Breaking change indicators"
+    - "Scope and impact assessment"
+    
+  constraint_needed:
+    - "Force conventional commit format: type(scope): description"
+    - "Require specific, actionable descriptions"
+    - "Mandate breaking change indicators"
+    - "Enforce consistent type prefixes"
+
+# Conventional Commit Format
+commit_format:
+  structure: "type(scope): description"
+  optional_body: "Detailed explanation of changes"
+  optional_footer: "Breaking changes, issue references"
+  
+  types:
+    feat: "New feature for the user"
+    fix: "Bug fix for the user"
+    docs: "Documentation changes"
+    style: "Code style changes (formatting, etc)"
+    refactor: "Code refactoring without feature changes"
+    test: "Adding or updating tests"
+    chore: "Build process, tooling, dependencies"
+    perf: "Performance improvements"
+    ci: "CI/CD pipeline changes"
+    build: "Build system changes"
+
+# Examples
+examples:
+  bad: |
+    # AI generates these - VAGUE & USELESS
+    git commit -m "fix stuff"
+    git commit -m "update code"
+    git commit -m "changes"
+    git commit -m "improvements"
+    git commit -m "fixed bug"
+    git commit -m "added feature"
+    git commit -m "refactoring"
+    git commit -m "misc updates"
+    
+    # No context, no scope, no useful information
+    # Impossible to understand what changed or why
+    
+  good: |
+    # AILint enforces these - CLEAR & CONVENTIONAL
+    git commit -m "feat(auth): add OAuth2 login with Google integration"
+    git commit -m "fix(api): resolve null pointer exception in user validation"
+    git commit -m "docs(readme): update installation instructions for Python 3.9+"
+    git commit -m "refactor(db): extract user repository to improve testability"
+    git commit -m "perf(query): optimize database indexing for 50% faster searches"
+    git commit -m "test(auth): add integration tests for login flow"
+    
+    # With breaking changes:
+    git commit -m "feat(api): redesign user endpoint structure
+    
+    BREAKING CHANGE: user.name field renamed to user.full_name
+    Migration required for existing clients"
+    
+    # Multi-line with scope:
+    git commit -m "fix(payment): handle stripe webhook timeout errors
+    
+    - Add retry mechanism for failed webhooks
+    - Implement exponential backoff strategy
+    - Log payment processing failures for debugging
+    
+    Fixes #123"
+
+# Commit Types & Usage
+commit_types:
+  feat:
+    description: "New feature for the user"
+    examples: ["new API endpoint", "UI component", "user functionality"]
+    
+  fix:
+    description: "Bug fix for the user"
+    examples: ["crash fix", "incorrect behavior", "security vulnerability"]
+    
+  docs:
+    description: "Documentation changes only"
+    examples: ["README updates", "API docs", "code comments"]
+    
+  refactor:
+    description: "Code changes that don't add features or fix bugs"
+    examples: ["extract method", "rename variables", "improve structure"]
+    
+  perf:
+    description: "Performance improvements"
+    examples: ["optimize algorithm", "reduce memory usage", "faster queries"]
+    
+  test:
+    description: "Adding or updating tests"
+    examples: ["unit tests", "integration tests", "test fixtures"]
+
+# Scope Guidelines
+scope_guidelines:
+  components: ["auth", "api", "ui", "db", "docs", "config"]
+  features: ["login", "payment", "search", "profile", "dashboard"]
+  modules: ["user", "order", "product", "admin", "analytics"]
+  
+# Validation Rules
+validation_rules:
+  conventional_format:
+    pattern: "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\\(.+\\))?: .+"
+    message: "Must follow conventional commit format: type(scope): description"
+    
+  description_quality:
+    min_length: 10
+    max_length: 72
+    avoid_words: ["stuff", "things", "misc", "various", "updates"]
+    message: "Description must be specific and actionable"
+    
+  breaking_changes:
+    indicator: "BREAKING CHANGE:"
+    location: "body or footer"
+    message: "Breaking changes must be clearly indicated"
+
+# Anti-Patterns
+anti_patterns:
+  vague_messages:
+    bad: ["fix stuff", "update code", "changes", "improvements"]
+    good: ["fix(auth): resolve login timeout issue", "feat(api): add user search endpoint"]
+    
+  missing_type:
+    bad: ["added login feature", "fixed bug in payment"]
+    good: ["feat(auth): add OAuth login", "fix(payment): resolve charge calculation"]
+    
+  too_generic:
+    bad: ["refactoring", "cleanup", "misc"]
+    good: ["refactor(db): extract repository pattern", "style(css): format with prettier"]
+
+# Success Metrics
+success_metrics:
+  - conventional_format_compliance: "> 95% of commits"
+  - description_clarity: "> 90% actionable descriptions"
+  - type_accuracy: "> 95% correct type classification"
+  - scope_consistency: "> 80% consistent scope usage"
+
+# Best Practices
+best_practices:
+  subject_line:
+    - "Use imperative mood (add, fix, update)"
+    - "Don't end with period"
+    - "Keep under 72 characters"
+    - "Be specific about what changed"
+    
+  body:
+    - "Explain what and why, not how"
+    - "Wrap at 72 characters"
+    - "Use bullet points for multiple changes"
+    - "Reference issues when applicable"
+    
+  footer:
+    - "Include breaking change descriptions"
+    - "Reference issue numbers (Fixes #123)"
+    - "Co-authored-by for pair programming"
+
+# Test Cases
+test_cases:
+  - name: "detect_vague_commit"
+    input: "commit message request with 'fix stuff'"
+    expected_state: "constraint"
+    expected_output: "conventional format enforced"
+    
+  - name: "enforce_type_prefix"
+    input: "commit for new feature without type"
+    expected_state: "constraint"
+    expected_output: "feat: prefix required"
+    
+  - name: "validate_conventional_format"
+    input: "feat(auth): add OAuth2 integration"
+    expected_state: "complete"
+    expected_output: "conventional format validated"
+---
+
+# Conventional Commits
+
+## 🎯 Rule Purpose
+
+**Prevents AI from generating vague, inconsistent commit messages by enforcing Conventional Commits standard.**
+
+This rule detects commit message requests and forces structured, informative commits that follow industry conventions.
+
+## 🚫 AI Limitation Resolved
+
+**Problem**: AI generates useless commit messages because:
+- Training data contains many vague commits ("fix stuff", "update code")
+- No understanding of change impact or categorization
+- Missing context about conventional commit standards
+- No scope or breaking change awareness
+
+**Solution**: This state machine detects commit contexts and enforces Conventional Commits format.
+
+## ⚡ How It Works
+
+1. **Detection**: Identifies commit message requests and git contexts
+2. **Analysis**: Categorizes change type and assesses scope/impact
+3. **Constraint**: Enforces conventional format with proper type/scope/description
+4. **Validation**: Ensures clarity, consistency, and actionable descriptions
+
+## 💡 Key Constraints Applied
+
+- **Conventional Format**: Enforce `type(scope): description` structure
+- **Specific Types**: Use correct prefixes (feat, fix, docs, refactor, etc.)
+- **Clear Descriptions**: Actionable, specific commit messages
+- **Breaking Changes**: Proper indication of breaking changes
+- **Consistent Scoping**: Logical scope categorization
+
+## 🎯 Expected Results
+
+After applying this rule, your AI will generate:
+- ✅ Conventional commit format with proper types
+- ✅ Clear, actionable descriptions
+- ✅ Consistent scope usage
+- ✅ Breaking change indicators when needed
+- ✅ Professional, maintainable git history
+- ❌ No vague "fix stuff" or "update code" commits
+- ❌ No missing type prefixes or unclear descriptions
