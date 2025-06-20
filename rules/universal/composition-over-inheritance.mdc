@@ -1,0 +1,314 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+name: "composition-over-inheritance"
+description: "AI defaults to inheritance when composition would be better"
+version: "1.0.0"
+category: "universal"
+author: "ailint-core"
+
+# State Machine Definition
+states:
+  - idle
+  - detection
+  - analysis
+  - constraint
+  - validation
+  - complete
+
+# Trigger Conditions - When this rule activates
+triggers:
+  ai_requests: 
+    - "class"
+    - "inheritance" 
+    - "extends"
+    - "inherits"
+    - "base class"
+    - "parent class"
+    - "subclass"
+  content_patterns:
+    - "class.*extends"
+    - "class.*:"  # Python inheritance
+    - "extends.*{"
+    - "super("
+    - "super."
+  anti_patterns:
+    - "deep inheritance"
+    - "god class"
+    - "tight coupling"
+
+# State Transitions
+transitions:
+  idle → detection:
+    on: [ai_request_detected, inheritance_pattern_found]
+    condition: "trigger_matches"
+    
+  detection → analysis:
+    on: "inheritance_context_detected"
+    condition: "rule_applies"
+    
+  analysis → constraint:
+    on: "analysis_complete"
+    condition: "composition_preferred"
+    
+  constraint → validation:
+    on: "constraints_applied"
+    condition: "output_generated"
+    
+  validation → complete:
+    on: "validation_passed"
+    condition: "composition_enforced"
+    
+  validation → constraint:
+    on: "validation_failed"
+    condition: "retry_needed"
+
+# Actions per State
+actions:
+  detection:
+    - scan_for_inheritance_keywords
+    - identify_class_relationships
+    - check_inheritance_depth
+    
+  analysis:
+    - evaluate_is_relationship_vs_has_relationship
+    - check_for_shared_behavior_vs_shared_data
+    - identify_potential_composition_points
+    - assess_coupling_level
+    
+  constraint:
+    - suggest_composition_pattern
+    - recommend_interface_segregation
+    - enforce_dependency_injection
+    - promote_strategy_pattern
+    
+  validation:
+    - verify_composition_used
+    - check_interface_compliance
+    - validate_loose_coupling
+    - ensure_single_responsibility
+
+# AI Limitation Addressed
+limitation:
+  problem: "AI generates inheritance hierarchies by default, even when composition would be more appropriate"
+  
+  context_missing:
+    - "Relationship type (is-a vs has-a)"
+    - "Code reuse intention"
+    - "Future extensibility needs"
+    - "Testing and mocking requirements"
+    
+  constraint_needed:
+    - "Force composition for has-a relationships"
+    - "Limit inheritance depth to 2-3 levels max"
+    - "Prefer interfaces and dependency injection"
+    - "Use strategy pattern for behavior variation"
+
+# Language-Specific Adaptations
+language_adaptations:
+  javascript:
+    prefer: "Factory functions and object composition"
+    avoid: "Class inheritance chains"
+    pattern: "const service = createService({ db, cache })"
+    
+  python:
+    prefer: "Composition with __init__ injection"
+    avoid: "Deep class hierarchies"
+    pattern: "class Service: def __init__(self, db, cache)"
+    
+  java:
+    prefer: "Interface composition and dependency injection"
+    avoid: "Abstract class inheritance"
+    pattern: "@Autowired or constructor injection"
+    
+  csharp:
+    prefer: "Interface composition with DI container"
+    avoid: "Implementation inheritance"
+    pattern: "IService with constructor injection"
+
+# Examples
+examples:
+  bad:
+    javascript: |
+      // AI generates this - INHERITANCE HELL
+      class Animal {
+        constructor(name) { this.name = name; }
+        eat() { console.log('eating'); }
+      }
+      
+      class Dog extends Animal {
+        constructor(name, breed) {
+          super(name);
+          this.breed = breed;
+        }
+        bark() { console.log('woof'); }
+      }
+      
+      class WorkingDog extends Dog {
+        constructor(name, breed, job) {
+          super(name, breed);
+          this.job = job;
+        }
+        work() { console.log('working'); }
+      }
+      
+    python: |
+      # AI generates this - TIGHT COUPLING
+      class BaseService:
+          def __init__(self):
+              self.db = Database()  # hardcoded
+              self.cache = Redis()  # tightly coupled
+      
+      class UserService(BaseService):
+          def get_user(self, id):
+              return self.db.find(id)
+              
+  good:
+    javascript: |
+      // AILint enforces this - COMPOSITION
+      const createAnimal = (name, behaviors) => ({
+        name,
+        ...behaviors
+      });
+      
+      const createDog = (name, breed) => 
+        createAnimal(name, {
+          breed,
+          bark: () => console.log('woof'),
+          eat: () => console.log('eating')
+        });
+      
+      const createWorkingDog = (name, breed, job, workBehavior) =>
+        createDog(name, breed, {
+          ...createDog(name, breed),
+          job,
+          work: workBehavior
+        });
+        
+    python: |
+      # AILint enforces this - DEPENDENCY INJECTION
+      class UserService:
+          def __init__(self, db, cache):
+              self.db = db      # injected
+              self.cache = cache # testable
+      
+          def get_user(self, id):
+              return self.db.find(id)
+      
+      # Usage with composition
+      service = UserService(
+          db=DatabaseAdapter(),
+          cache=CacheAdapter()
+      )
+
+# Validation Rules
+validation_rules:
+  inheritance_depth:
+    max_levels: 3
+    message: "Inheritance depth exceeds 3 levels, consider composition"
+    
+  tight_coupling:
+    forbidden_patterns: ["new Database()", "new Redis()", "hardcoded dependencies"]
+    message: "Tight coupling detected, use dependency injection"
+    
+  god_class:
+    max_methods: 10
+    max_lines: 200
+    message: "Class too large, break into smaller composed pieces"
+    
+  interface_segregation:
+    prefer: "small focused interfaces"
+    avoid: "large monolithic interfaces"
+
+# Success Metrics
+success_metrics:
+  - composition_ratio: "> 80% composition vs inheritance"
+  - coupling_score: "< 20% tight coupling"
+  - testability: "> 90% mockable dependencies"
+  - maintainability: "< 3 inheritance levels"
+
+# Debug Information
+debug:
+  log_transitions: true
+  log_constraints: true
+  log_validations: true
+  
+# Test Cases
+test_cases:
+  - name: "detect_inheritance_request"
+    input: "create a user service that extends base service"
+    expected_state: "constraint"
+    expected_output: "composition pattern suggested"
+    
+  - name: "force_dependency_injection"
+    input: "class with hardcoded database connection"
+    expected_state: "constraint" 
+    expected_output: "constructor injection enforced"
+    
+  - name: "validate_composition"
+    input: "factory function with injected dependencies"
+    expected_state: "complete"
+    expected_output: "validation passed"
+---
+
+# Composition Over Inheritance
+
+## 🎯 Rule Purpose
+
+**Prevents AI from defaulting to inheritance when composition is more appropriate.**
+
+This rule implements the fundamental principle "favor composition over inheritance" by detecting when AI is about to create inheritance hierarchies and steering it toward composition patterns instead.
+
+## 🚫 AI Limitation Resolved
+
+**Problem**: AI assistants default to inheritance because it's a common OOP pattern in training data, even when:
+- The relationship is "has-a" not "is-a"
+- Behavior needs to be mixed and matched
+- Testing requires mocking dependencies
+- Future changes need flexibility
+
+**Solution**: This state machine detects inheritance patterns and applies composition constraints before code generation.
+
+## ⚡ How It Works
+
+1. **Detection**: Scans for inheritance keywords (`extends`, `inherits`, `super`)
+2. **Analysis**: Evaluates if relationship is truly "is-a" or could be "has-a"
+3. **Constraint**: Suggests composition patterns, dependency injection
+4. **Validation**: Ensures output uses composition over inheritance
+
+## 🔧 State Flow
+
+```
+AI: "create user service extending base service"
+     ↓
+DETECTION: inheritance keywords found
+     ↓  
+ANALYSIS: evaluate relationship type
+     ↓
+CONSTRAINT: suggest composition pattern
+     ↓
+VALIDATION: verify composition used
+     ↓
+COMPLETE: better code generated
+```
+
+## 💡 Key Constraints Applied
+
+- **Dependency Injection**: Force constructor/parameter injection
+- **Interface Composition**: Prefer small, focused interfaces
+- **Strategy Pattern**: Use for behavior variation
+- **Factory Functions**: Alternative to class inheritance
+- **Depth Limiting**: Max 2-3 inheritance levels
+
+## 🎯 Expected Results
+
+After applying this rule, your AI will generate:
+- ✅ Loosely coupled, testable code
+- ✅ Flexible composition patterns  
+- ✅ Dependency injection by default
+- ✅ Strategy pattern for behavior variation
+- ❌ No deep inheritance hierarchies
+- ❌ No tightly coupled hardcoded dependencies
