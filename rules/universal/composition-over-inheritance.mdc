@@ -1,100 +1,18 @@
 ---
-name: "composition-over-inheritance"
-description: "AI defaults to inheritance when composition would be better"
-version: "1.1.0"
-category: "universal"
-author: "ailint-core"
-
-# State Machine Definition
-states:
-  - idle
-  - detection
-  - analysis
-  - constraint
-  - validation
-  - complete
-
-# Trigger Conditions
+name: composition-over-inheritance
+description: AI defaults to inheritance when composition would be better
+category: universal
+severity: warning
 triggers:
-  ai_requests: 
-    - "class"
-    - "inheritance" 
-    - "extends"
-    - "inherits"
-    - "base class"
-    - "parent class"
-    - "subclass"
-  content_patterns:
-    - "class.*\\("          # Python inheritance
-    - "class.*extends"      # JS inheritance
-    - "super\\("            # Super calls
-    - "extends.*{"          # Class extensions
-  anti_patterns:
-    - "deep inheritance"
-    - "tight coupling"
-    - "inheritance chain"
-
-# State Transitions
-transitions:
-  idle → detection:
-    on: [ai_request_detected, inheritance_pattern_found]
-    condition: "trigger_matches"
-    
-  detection → analysis:
-    on: "inheritance_context_detected"
-    condition: "rule_applies"
-    
-  analysis → constraint:
-    on: "analysis_complete"
-    condition: "composition_preferred"
-    
-  constraint → validation:
-    on: "constraints_applied"
-    condition: "output_generated"
-    
-  validation → complete:
-    on: "validation_passed"
-    condition: "composition_enforced"
-
-# Actions per State
-actions:
-  detection:
-    - scan_for_inheritance_keywords
-    - identify_class_relationships
-    - check_inheritance_depth
-    
-  analysis:
-    - evaluate_is_vs_has_relationship
-    - identify_composition_opportunities
-    - assess_coupling_level
-    
-  constraint:
-    - suggest_composition_pattern
-    - enforce_dependency_injection
-    - promote_strategy_pattern
-    
-  validation:
-    - verify_composition_used
-    - validate_loose_coupling
-    - ensure_single_responsibility
-
-# AI Limitation Addressed
-limitation:
-  problem: "AI generates inheritance hierarchies by default, even when composition is more appropriate"
-  
-  context_missing:
-    - "Relationship type (is-a vs has-a)"
-    - "Code reuse intention"
-    - "Testing and mocking requirements"
-    - "Future extensibility needs"
-    
-  constraint_needed:
-    - "Force composition for has-a relationships"
-    - "Limit inheritance depth to 2-3 levels max"
-    - "Prefer dependency injection over inheritance"
-    - "Use strategy pattern for behavior variation"
-
-# Examples
+  - type: regex
+    pattern: "class\\s+\\w+\\s*\\([^)]*\\):"
+    context: python_inheritance
+  - type: regex
+    pattern: "class\\s+\\w+\\s+extends\\s+\\w+"
+    context: javascript_inheritance
+  - type: regex
+    pattern: "extends\\s+\\w+"
+    context: general_inheritance
 examples:
   bad: |
     # AI generates this - INHERITANCE HELL
@@ -117,10 +35,6 @@ examples:
             self.job = job
         def work(self):
             print("working")
-    
-    # Usage - tightly coupled, hard to test
-    working_dog = WorkingDog("Rex", "German Shepherd", "Police")
-    
   good: |
     # AILint enforces this - COMPOSITION
     class Animal:
@@ -140,77 +54,9 @@ examples:
             "breed_info": lambda: print(f"Breed: {breed}")
         }
     
-    def create_work_behaviors(job):
-        return {
-            "work": lambda: print(f"Working as {job}"),
-            "rest": lambda: print("Taking a break")
-        }
-    
     # Usage - flexible, testable, composable
     dog_behaviors = create_dog_behaviors("German Shepherd")
-    work_behaviors = create_work_behaviors("Police")
-    
-    working_dog = Animal("Rex", {**dog_behaviors, **work_behaviors})
-
-# Language-Specific Adaptations
-language_adaptations:
-  python:
-    prefer: "Composition with dependency injection"
-    avoid: "Deep class hierarchies with super()"
-    pattern: "class Service: def __init__(self, dependencies)"
-    
-  javascript:
-    prefer: "Factory functions and object composition"
-    avoid: "Class inheritance chains"
-    pattern: "const service = createService(dependencies)"
-    
-  java:
-    prefer: "Interface composition and dependency injection"
-    avoid: "Abstract class inheritance"
-    pattern: "@Autowired constructor injection"
-    
-  csharp:
-    prefer: "Interface composition with DI container"
-    avoid: "Implementation inheritance"
-    pattern: "Constructor injection with interfaces"
-
-# Validation Rules
-validation_rules:
-  inheritance_depth:
-    max_levels: 3
-    message: "Inheritance depth exceeds 3 levels, consider composition"
-    
-  tight_coupling:
-    forbidden_patterns: ["hardcoded dependencies", "direct instantiation"]
-    message: "Tight coupling detected, use dependency injection"
-    
-  composition_ratio:
-    target: "> 80% composition vs inheritance"
-    message: "Favor composition over inheritance for flexibility"
-
-# Success Metrics
-success_metrics:
-  - composition_usage: "> 80% of relationships"
-  - coupling_score: "< 20% tight coupling"
-  - testability: "> 90% mockable dependencies"
-  - inheritance_depth: "< 3 levels average"
-
-# Test Cases
-test_cases:
-  - name: "detect_inheritance_request"
-    input: "create user service that extends base service"
-    expected_state: "constraint"
-    expected_output: "composition pattern suggested"
-    
-  - name: "force_dependency_injection"
-    input: "class with hardcoded dependencies"
-    expected_state: "constraint"
-    expected_output: "constructor injection enforced"
-    
-  - name: "validate_composition"
-    input: "function with injected dependencies"
-    expected_state: "complete"
-    expected_output: "composition validated"
+    working_dog = Animal("Rex", dog_behaviors)
 ---
 
 # Composition Over Inheritance
@@ -223,7 +69,7 @@ This rule implements the fundamental principle "favor composition over inheritan
 
 ## 🚫 AI Limitation Resolved
 
-**Problem**: AI defaults to inheritance because it's common in training data, even when:
+**Problem**: AI defaults to inheritance because:
 - The relationship is "has-a" not "is-a"
 - Behavior needs to be mixed and matched
 - Testing requires mocking dependencies

@@ -1,315 +1,104 @@
 ---
-name: "avoid-god-classes"
-description: "AI creates massive classes that violate Single Responsibility Principle"
-version: "1.1.0"
-category: "universal"
-author: "ailint-core"
-
-# State Machine Definition
-states:
-  - idle
-  - detection
-  - analysis
-  - constraint
-  - validation
-  - complete
-
-# Trigger Conditions
+name: meaningful-variable-names
+description: AI generates vague variable names like 'data', 'result', 'info' instead of descriptive names
+category: universal
+severity: info
 triggers:
-  ai_requests:
-    - "user service"
-    - "data manager"
-    - "utility class"
-    - "helper class"
-    - "service class"
-    - "controller"
-    - "manager"
-  content_patterns:
-    - "class.*:\\s*\\n(\\s*def.*\\n){8,}"  # 8+ methods
-    - "class.*{[\\s\\S]{300,}"             # Large class bodies
-  anti_patterns:
-    - "god class"
-    - "do everything"
-    - "kitchen sink"
-    - "monolithic class"
-
-# State Transitions
-transitions:
-  idle → detection:
-    on: [large_class_detected, many_methods_found]
-    condition: "class_size_exceeds_limits"
-    
-  detection → analysis:
-    on: "god_class_pattern_identified"
-    condition: "multiple_responsibilities_detected"
-    
-  analysis → constraint:
-    on: "analysis_complete"
-    condition: "decomposition_needed"
-    
-  constraint → validation:
-    on: "decomposition_applied"
-    condition: "smaller_classes_created"
-    
-  validation → complete:
-    on: "validation_passed"
-    condition: "single_responsibility_achieved"
-
-# Actions per State
-actions:
-  detection:
-    - count_methods_and_properties
-    - measure_class_size
-    - identify_mixed_concerns
-    
-  analysis:
-    - group_related_methods
-    - identify_cohesion_clusters
-    - find_natural_boundaries
-    
-  constraint:
-    - suggest_class_decomposition
-    - enforce_single_responsibility
-    - promote_composition
-    
-  validation:
-    - verify_class_size_limits
-    - check_method_cohesion
-    - validate_single_purpose
-
-# AI Limitation Addressed
-limitation:
-  problem: "AI creates massive 'utility' or 'service' classes that handle everything"
-  
-  context_missing:
-    - "Single Responsibility Principle"
-    - "Cohesion and coupling concepts"
-    - "Natural domain boundaries"
-    - "Maintainability implications"
-    
-  constraint_needed:
-    - "Limit class size (methods, lines, responsibilities)"
-    - "Force domain-specific decomposition"
-    - "Require focused, cohesive classes"
-    - "Promote composition patterns"
-
-# Size Limits
-size_limits:
-  max_methods: 10
-  max_lines: 200
-  max_public_methods: 7
-  max_responsibilities: 1
-
-# Examples
+  - type: regex
+    pattern: "\\b(data|result|response|info|temp|obj|val|item)\\s*="
+    context: generic_variable_assignment
+  - type: regex
+    pattern: "\\b(i|j|k)\\b"
+    context: loop_variables_outside_simple_loops
+  - type: regex
+    pattern: "\\bvar\\s+(data|result|info|temp)\\b"
+    context: javascript_generic_variables
 examples:
   bad: |
-    # AI generates this - GOD CLASS NIGHTMARE
-    class UserManager:
-        def __init__(self, db, email, logger, cache, files):
-            self.db = db
-            self.email = email
-            self.logger = logger
-            self.cache = cache
-            self.files = files
+    def process_user_data():
+        # What kind of data? From where?
+        data = fetch_user_info()
         
-        # USER VALIDATION (responsibility #1)
-        def validate_email(self, email): pass
-        def validate_password(self, password): pass
+        # What result? Result of what?
+        result = []
         
-        # DATABASE OPERATIONS (responsibility #2) 
-        def save_user(self, user): pass
-        def find_user(self, id): pass
-        def delete_user(self, id): pass
+        # What response? API response? User response?
+        response = api_call()
         
-        # EMAIL OPERATIONS (responsibility #3)
-        def send_welcome_email(self, user): pass
-        def send_password_reset(self, user): pass
+        # Info about what?
+        info = response.get('info')
         
-        # FILE OPERATIONS (responsibility #4)
-        def upload_avatar(self, user, file): pass
-        def delete_avatar(self, user): pass
+        for item in data:
+            obj = transform(item)
+            temp = calculate(obj)
+            result.append(temp)
         
-        # CACHING (responsibility #5)
-        def cache_user(self, user): pass
-        def invalidate_cache(self, user_id): pass
-        
-        # LOGGING (responsibility #6)
-        def log_user_action(self, user, action): pass
-        
-        # ... 15+ more methods doing EVERYTHING
-    
+        return result
   good: |
-    # AILint enforces this - SINGLE RESPONSIBILITY CLASSES
-    
-    # USER VALIDATION - One responsibility
-    class UserValidator:
-        def validate_email(self, email):
-            return "@" in email and "." in email
+    def process_user_data():
+        # Clear: user profile data from database
+        user_profiles = fetch_user_info()
         
-        def validate_password(self, password):
-            return len(password) >= 8
+        # Clear: processed profiles ready for export
+        processed_profiles = []
         
-        def validate(self, user_data):
-            return {
-                "email_valid": self.validate_email(user_data.get("email", "")),
-                "password_valid": self.validate_password(user_data.get("password", ""))
-            }
-    
-    # USER REPOSITORY - One responsibility  
-    class UserRepository:
-        def __init__(self, db):
-            self.db = db
+        # Clear: response from external API
+        api_response = api_call()
         
-        def save(self, user):
-            return self.db.users.insert_one(user)
+        # Clear: user preferences from API
+        user_preferences = api_response.get('preferences')
         
-        def find_by_id(self, user_id):
-            return self.db.users.find_one({"_id": user_id})
+        for user_profile in user_profiles:
+            enriched_profile = enrich_with_preferences(user_profile)
+            user_engagement_score = calculate_engagement(enriched_profile)
+            processed_profiles.append({
+                'profile': enriched_profile,
+                'score': user_engagement_score
+            })
         
-        def delete(self, user_id):
-            return self.db.users.delete_one({"_id": user_id})
-    
-    # USER NOTIFIER - One responsibility
-    class UserNotifier:
-        def __init__(self, email_service):
-            self.email_service = email_service
-        
-        def send_welcome(self, user):
-            return self.email_service.send("welcome", user.email, {"name": user.name})
-    
-    # COMPOSITION - Combining focused services
-    class UserService:
-        def __init__(self, validator, repository, notifier):
-            self.validator = validator
-            self.repository = repository
-            self.notifier = notifier
-        
-        def create_user(self, user_data):
-            # Single responsibility: orchestration only
-            validation = self.validator.validate(user_data)
-            if not validation["email_valid"] or not validation["password_valid"]:
-                raise ValueError("Invalid user data")
-            
-            user = self.repository.save(user_data)
-            self.notifier.send_welcome(user)
-            return user
-
-# Language-Specific Adaptations
-language_adaptations:
-  python:
-    prefer: "Focused classes following SRP"
-    avoid: "Classes handling multiple domain concepts"
-    pattern: "class UserValidator: # Single purpose"
-    
-  javascript:
-    prefer: "Small focused modules and factory functions"
-    avoid: "Large object literals with many methods"
-    pattern: "const userValidator = createValidator()"
-    
-  java:
-    prefer: "Single-responsibility services with @Service"
-    avoid: "Manager/Utility classes doing everything"
-    pattern: "@Service UserValidator"
-    
-  csharp:
-    prefer: "Focused services with single purpose"
-    avoid: "Helper/Utility classes with mixed responsibilities"
-    pattern: "public class UserValidator"
-
-# Validation Rules
-validation_rules:
-  class_size:
-    max_methods: 10
-    max_lines: 200
-    message: "Class exceeds size limits, break into smaller classes"
-    
-  single_responsibility:
-    max_reasons_to_change: 1
-    forbidden_names: ["Manager", "Helper", "Utility", "Handler"]
-    message: "Class has multiple responsibilities, apply SRP"
-    
-  method_cohesion:
-    min_cohesion: 0.7
-    message: "Low cohesion detected, group related methods separately"
-
-# Decomposition Strategies
-decomposition_strategies:
-  by_data:
-    description: "Group methods that operate on the same data"
-    example: "UserValidator, UserRepository, UserNotifier"
-    
-  by_behavior:
-    description: "Group methods with similar behavior patterns"
-    example: "ValidationOperations, DatabaseOperations"
-    
-  by_lifecycle:
-    description: "Group methods by object lifecycle stage"
-    example: "UserCreator, UserUpdater, UserArchiver"
-
-# Success Metrics
-success_metrics:
-  - average_class_size: "< 150 lines"
-  - method_count_per_class: "< 10 methods"
-  - cohesion_score: "> 0.8"
-  - responsibility_focus: "1 primary responsibility per class"
-
-# Test Cases
-test_cases:
-  - name: "detect_large_class"
-    input: "class with 15+ methods"
-    expected_state: "constraint"
-    expected_output: "decomposition suggested"
-    
-  - name: "enforce_single_responsibility"
-    input: "UserManager doing validation, persistence, email"
-    expected_state: "constraint"
-    expected_output: "separate classes required"
-    
-  - name: "validate_focused_class"
-    input: "UserValidator with only validation methods"
-    expected_state: "complete"
-    expected_output: "single responsibility achieved"
+        return processed_profiles
 ---
 
-# Avoid God Classes
+# Meaningful Variable Names
 
 ## 🎯 Rule Purpose
 
-**Prevents AI from creating massive classes that violate the Single Responsibility Principle.**
+**Eliminates vague variable names by enforcing intention-revealing, context-specific naming.**
 
-This rule detects large, unfocused classes and enforces decomposition into smaller, cohesive classes with single responsibilities.
+This rule detects generic variable names like 'data', 'result', 'info' and forces descriptive names that clearly communicate purpose and context.
 
 ## 🚫 AI Limitation Resolved
 
-**Problem**: AI creates "kitchen sink" classes because training data shows convenience classes:
-- `UserManager` doing validation, persistence, email, files
-- `DataService` handling multiple unrelated operations  
-- `Helper` classes with dozens of unrelated methods
-- Classes with 20+ methods and 500+ lines
+**Problem**: AI generates meaningless variable names because:
+- Training data contains many examples with lazy naming
+- Generic names appear simpler in isolated code snippets
+- AI doesn't understand business domain context
+- No awareness of code readability impact
 
-**Solution**: This state machine detects large classes and enforces Single Responsibility Principle.
+**Solution**: This rule detects generic naming patterns and enforces descriptive, intention-revealing names.
 
 ## ⚡ How It Works
 
-1. **Detection**: Counts methods, lines, and identifies mixed responsibilities
-2. **Analysis**: Groups related methods and finds decomposition boundaries
-3. **Constraint**: Forces class breakdown into focused, single-purpose classes
-4. **Validation**: Ensures each class has one clear responsibility
+1. **Detection**: Scans for generic variable names and vague naming patterns
+2. **Analysis**: Analyzes variable context, purpose, and business domain
+3. **Constraint**: Enforces descriptive naming that reveals intention
+4. **Validation**: Ensures names clearly communicate purpose and context
 
 ## 💡 Key Constraints Applied
 
-- **Size Limits**: Max 10 methods, 200 lines per class
-- **Single Responsibility**: One reason to change per class
-- **High Cohesion**: Methods work together on related data
-- **Domain Focus**: Classes named after domain concepts
-- **Composition**: Use multiple focused classes instead of one large class
+- **No Generic Names**: Eliminate 'data', 'result', 'response', 'info', 'temp'
+- **Context-Specific**: Names must reflect business domain and purpose
+- **Intention-Revealing**: Variables explain why they exist and how they're used
+- **Searchable Names**: Prefer descriptive names over abbreviations
+- **Domain Terminology**: Use business-specific vocabulary
 
 ## 🎯 Expected Results
 
 After applying this rule, your AI will generate:
-- ✅ Small, focused classes with single responsibilities
-- ✅ High cohesion within classes
-- ✅ Clear separation of concerns
-- ✅ Composable, testable design
-- ❌ No "Manager" or "Helper" god classes
-- ❌ No classes with 20+ methods doing everything
+- ✅ Variables that clearly indicate their purpose
+- ✅ Context-specific naming using domain terminology
+- ✅ Self-documenting code that reduces need for comments
+- ✅ Consistent naming patterns across the codebase
+- ❌ No generic 'data', 'result', 'response' variables
+- ❌ No single-letter variables outside simple loops
+- ❌ No abbreviations that require mental decoding
