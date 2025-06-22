@@ -1,113 +1,21 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
-name: "explicit-error-messages"
-description: "AI generates vague error messages like 'Error', 'Invalid input' instead of specific, actionable messages"
-version: "1.0.0"
-category: "universal"
-author: "ailint-core"
-
-# State Machine Definition
-states:
-  - idle
-  - detection
-  - analysis
-  - constraint
-  - validation
-  - complete
-
-# Trigger Conditions
+name: explicit-error-messages
+description: AI generates vague error messages like 'Error', 'Invalid input' instead of specific, actionable messages
+category: universal
+severity: warning
 triggers:
-  ai_requests:
-    - "error"
-    - "exception"
-    - "throw"
-    - "raise"
-    - "validation"
-    - "error handling"
-  content_patterns:
-    - "raise Exception\\(\"Error"
-    - "throw new Error\\(\"Error"
-    - "raise ValueError\\(\"Invalid"
-    - "\"Error\""
-    - "\"Invalid input\""
-    - "\"Something went wrong\""
-  anti_patterns:
-    - "generic error messages"
-    - "vague error descriptions"
-    - "unhelpful exceptions"
-
-# State Transitions
-transitions:
-  idle → detection:
-    on: [vague_error_detected, generic_exception_found]
-    condition: "meaningless_error_message_detected"
-    
-  detection → analysis:
-    on: "error_context_identified"
-    condition: "specific_error_description_needed"
-    
-  analysis → constraint:
-    on: "error_analysis_complete"
-    condition: "actionable_message_determinable"
-    
-  constraint → validation:
-    on: "explicit_error_messages_applied"
-    condition: "specific_actionable_messages_generated"
-    
-  validation → complete:
-    on: "validation_passed"
-    condition: "no_vague_error_messages_detected"
-
-# Actions per State
-actions:
-  detection:
-    - scan_for_generic_error_messages
-    - identify_error_context
-    - detect_vague_exception_patterns
-    
-  analysis:
-    - analyze_failure_cause
-    - determine_user_action_needed
-    - identify_validation_requirements
-    
-  constraint:
-    - enforce_specific_error_descriptions
-    - require_actionable_guidance
-    - mandate_context_inclusion
-    
-  validation:
-    - verify_error_message_specificity
-    - check_actionable_guidance_presence
-    - ensure_debugging_information_included
-
-# AI Limitation Addressed
-limitation:
-  problem: "AI generates vague error messages because training data contains many examples with generic error handling"
-  
-  context_missing:
-    - "Specific failure cause and context"
-    - "User-actionable guidance for resolution"
-    - "Validation requirements and constraints"
-    - "Debugging information for developers"
-    
-  constraint_needed:
-    - "Force specific error descriptions with context"
-    - "Require actionable guidance for error resolution"
-    - "Include relevant values and constraints in messages"
-    - "Provide clear next steps for users and developers"
-
-# Forbidden Generic Messages
-forbidden_error_messages:
-  generic_errors: ["Error", "Something went wrong", "Failed", "Invalid"]
-  vague_validation: ["Invalid input", "Bad data", "Wrong format", "Not allowed"]
-  unhelpful_exceptions: ["Exception occurred", "Operation failed", "Error processing"]
-  debugging_useless: ["Null reference", "Unexpected error", "System error"]
-
-# Examples
+  - type: regex
+    pattern: "raise Exception\\(\"Error\"\\)|throw new Error\\(\"Error\"\\)"
+    context: generic_error_messages
+  - type: regex
+    pattern: "ValueError\\(\"Invalid\"\\)|Error\\(\"Invalid input\"\\)"
+    context: vague_validation_errors
+  - type: regex
+    pattern: "throw.*\"Something went wrong\"|raise.*\"Bad data\""
+    context: unhelpful_messages
+  - type: regex
+    pattern: "Exception\\(\"Error\"\\)|Error\\(\"Failed\"\\)"
+    context: single_word_errors
 examples:
   bad: |
     # AI generates this - USELESS ERROR MESSAGES
@@ -133,13 +41,15 @@ examples:
         except:
             raise Exception("Payment failed")  # Why? Network? Declined?
     
-    def create_user(user_data):
-        if not user_data.get('name'):
-            raise ValueError("Missing field")  # Which field specifically?
-        
-        if len(user_data['name']) > 50:
-            raise ValueError("Too long")  # What's too long? What's the limit?
-    
+    // JavaScript
+    function validateAge(age) {
+        if (age < 0) {
+            throw new Error("Invalid");  // Invalid how?
+        }
+        if (age > 150) {
+            throw new Error("Error");  // What error?
+        }
+    }
   good: |
     # AILint enforces this - SPECIFIC, ACTIONABLE ERROR MESSAGES
     def validate_email(email):
@@ -158,9 +68,6 @@ examples:
         if amount <= 0:
             raise ValueError(f"Payment amount must be positive. Received: {amount}. Minimum amount: $0.01")
         
-        if amount > 10000:
-            raise ValueError(f"Payment amount ${amount} exceeds maximum limit of $10,000. Contact support for larger transactions")
-        
         if not card or not card.get('number'):
             raise ValueError("Credit card information is required. Please provide card number, expiry, and CVV")
         
@@ -171,146 +78,15 @@ examples:
         except CardDeclinedError as e:
             raise PaymentError(f"Payment declined by bank. Reason: {e.decline_reason}. Please check card details or try a different payment method")
     
-    def create_user(user_data):
-        if not user_data.get('name'):
-            raise ValueError("User name is required. Please provide a name between 1 and 50 characters")
-        
-        if len(user_data['name']) > 50:
-            raise ValueError(f"User name '{user_data['name']}' is {len(user_data['name'])} characters long. Maximum allowed: 50 characters")
-        
-        if len(user_data['name']) < 2:
-            raise ValueError(f"User name '{user_data['name']}' is too short. Minimum required: 2 characters")
-
-# Error Message Components
-message_components:
-  context:
-    description: "What was being attempted when the error occurred"
-    example: "While validating email address"
-    
-  specific_problem:
-    description: "Exact issue that caused the failure"
-    example: "Email must contain '@' symbol"
-    
-  received_value:
-    description: "What value caused the problem"
-    example: "Received: 'user.domain.com'"
-    
-  expected_format:
-    description: "What format or value would be valid"
-    example: "Expected format: user@domain.com"
-    
-  actionable_guidance:
-    description: "What the user should do to fix the problem"
-    example: "Please add '@' symbol between username and domain"
-
-# Error Categories and Patterns
-error_categories:
-  validation_errors:
-    bad: ["Invalid input", "Bad format", "Wrong data"]
-    good: ["Email must contain @ symbol", "Password must be at least 8 characters", "Phone number must be 10 digits"]
-    
-  business_rule_errors:
-    bad: ["Not allowed", "Cannot do that", "Forbidden"]
-    good: ["Insufficient account balance", "User not authorized for admin actions", "Order cannot be cancelled after shipping"]
-    
-  system_errors:
-    bad: ["System error", "Unexpected error", "Something went wrong"]
-    good: ["Database connection timeout", "External API rate limit exceeded", "File not found at specified path"]
-    
-  network_errors:
-    bad: ["Network error", "Connection failed", "Timeout"]
-    good: ["Unable to connect to payment gateway", "API request timed out after 30 seconds", "DNS resolution failed for domain"]
-
-# Language-Specific Adaptations
-language_adaptations:
-  python:
-    prefer: "Specific exception types with descriptive messages"
-    avoid: "Generic Exception with vague messages"
-    pattern: "raise ValueError(f'Email {email} must contain @ symbol')"
-    
-  javascript:
-    prefer: "Custom Error classes with detailed messages"
-    avoid: "Generic Error with single word messages"
-    pattern: "throw new ValidationError('Email must contain @ symbol')"
-    
-  java:
-    prefer: "Specific exception types with context"
-    avoid: "Generic RuntimeException with minimal info"
-    pattern: "throw new IllegalArgumentException('Email must contain @ symbol')"
-    
-  csharp:
-    prefer: "Specific exception types with actionable messages"
-    avoid: "Generic Exception with brief messages"
-    pattern: "throw new ArgumentException('Email must contain @ symbol')"
-
-# Domain-Specific Error Messages
-domain_error_patterns:
-  authentication:
-    bad: ["Login failed", "Access denied", "Invalid credentials"]
-    good: ["Email or password incorrect", "Account locked due to 3 failed attempts", "Password expired, reset required"]
-    
-  ecommerce:
-    bad: ["Cannot checkout", "Payment error", "Order failed"]
-    good: ["Insufficient inventory for requested quantity", "Credit card expired", "Shipping address invalid for selected carrier"]
-    
-  data_validation:
-    bad: ["Invalid data", "Format error", "Validation failed"]
-    good: ["Date must be in YYYY-MM-DD format", "Phone number must contain only digits", "File size exceeds 10MB limit"]
-
-# Validation Rules
-validation_rules:
-  no_generic_error_messages:
-    forbidden_patterns: ["^(Error|Invalid|Failed|Wrong)$"]
-    message: "Generic error message detected, provide specific context and guidance"
-    
-  include_context_and_guidance:
-    required_elements: ["specific_problem", "received_value", "expected_format"]
-    message: "Error message must include what went wrong and how to fix it"
-    
-  actionable_information:
-    required: "message provides clear next steps for resolution"
-    message: "Error message must guide user toward solution"
-
-# Error Message Guidelines
-message_guidelines:
-  be_specific:
-    - "Explain exactly what went wrong"
-    - "Include the problematic value when safe to do so"
-    - "Specify the expected format or range"
-    
-  be_actionable:
-    - "Tell user what they need to do to fix the problem"
-    - "Provide examples of valid input when helpful"
-    - "Suggest alternative approaches when applicable"
-    
-  be_helpful:
-    - "Include relevant context about why the validation exists"
-    - "Provide links to documentation when appropriate"
-    - "Offer contact information for complex issues"
-
-# Success Metrics
-success_metrics:
-  - error_message_specificity: "> 95% errors include specific problem description"
-  - actionable_guidance: "> 90% errors provide clear next steps"
-  - debugging_efficiency: "> 80% faster problem resolution"
-  - user_experience: "> 85% reduction in support tickets for common errors"
-
-# Test Cases
-test_cases:
-  - name: "detect_generic_error"
-    input: "exception with message 'Error' or 'Invalid input'"
-    expected_state: "constraint"
-    expected_output: "specific error message required"
-    
-  - name: "enforce_actionable_messages"
-    input: "validation error without guidance"
-    expected_state: "constraint"
-    expected_output: "actionable error message enforced"
-    
-  - name: "validate_explicit_errors"
-    input: "error with specific problem and guidance"
-    expected_state: "complete"
-    expected_output: "explicit error message validated"
+    // JavaScript
+    function validateAge(age) {
+        if (age < 0) {
+            throw new Error(`Age cannot be negative. Received: ${age}. Please provide a valid age between 0 and 150.`);
+        }
+        if (age > 150) {
+            throw new Error(`Age ${age} exceeds maximum realistic age of 150. Please verify the input.`);
+        }
+    }
 ---
 
 # Explicit Error Messages
@@ -329,7 +105,7 @@ This rule detects generic error messages like 'Error', 'Invalid input' and force
 - AI doesn't understand the debugging and user experience impact
 - No awareness of actionable guidance principles
 
-**Solution**: This state machine detects vague error patterns and enforces specific, helpful error messages.
+**Solution**: This rule detects vague error patterns and enforces specific, helpful error messages.
 
 ## ⚡ How It Works
 
