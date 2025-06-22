@@ -1,113 +1,18 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
-name: "descriptive-function-names"
-description: "AI generates vague function names like 'process', 'handle', 'update' instead of intention-revealing names"
-version: "1.0.0"
-category: "universal"
-author: "ailint-core"
-
-# State Machine Definition
-states:
-  - idle
-  - detection
-  - analysis
-  - constraint
-  - validation
-  - complete
-
-# Trigger Conditions
+name: descriptive-function-names
+description: AI generates vague function names like 'process', 'handle', 'update' instead of intention-revealing names
+category: universal
+severity: info
 triggers:
-  ai_requests:
-    - "function"
-    - "method"
-    - "def "
-    - "function "
-    - "create function"
-  content_patterns:
-    - "def process\\("
-    - "def handle\\("
-    - "def update\\("
-    - "def get\\("
-    - "def set\\("
-    - "function process\\("
-    - "function handle\\("
-  anti_patterns:
-    - "generic function names"
-    - "vague method names"
-    - "unclear function purpose"
-
-# State Transitions
-transitions:
-  idle → detection:
-    on: [vague_function_detected, generic_method_found]
-    condition: "meaningless_function_name_detected"
-    
-  detection → analysis:
-    on: "function_context_identified"
-    condition: "descriptive_name_needed"
-    
-  analysis → constraint:
-    on: "function_purpose_analysis_complete"
-    condition: "specific_name_determinable"
-    
-  constraint → validation:
-    on: "descriptive_function_names_applied"
-    condition: "intention_revealing_names_generated"
-    
-  validation → complete:
-    on: "validation_passed"
-    condition: "no_vague_function_names_detected"
-
-# Actions per State
-actions:
-  detection:
-    - scan_for_generic_function_names
-    - identify_function_behavior
-    - detect_vague_naming_patterns
-    
-  analysis:
-    - analyze_function_purpose
-    - determine_input_output_relationship
-    - identify_business_action
-    
-  constraint:
-    - enforce_action_verb_naming
-    - require_outcome_specification
-    - mandate_behavior_description
-    
-  validation:
-    - verify_function_name_clarity
-    - check_intention_revelation
-    - ensure_behavior_predictability
-
-# AI Limitation Addressed
-limitation:
-  problem: "AI generates vague function names because training data contains many examples with generic naming"
-  
-  context_missing:
-    - "Function's specific behavior and outcome"
-    - "Business domain context and actions"
-    - "Input-output transformation details"
-    - "Side effects and state changes"
-    
-  constraint_needed:
-    - "Force descriptive names that reveal function behavior"
-    - "Require action verbs with specific outcomes"
-    - "Prevent generic placeholder function names"
-    - "Mandate business domain terminology in function names"
-
-# Forbidden Generic Names
-forbidden_function_names:
-  generic_actions: ["process", "handle", "manage", "do", "execute", "run"]
-  generic_crud: ["get", "set", "update", "delete", "save", "load"]
-  generic_data: ["data", "info", "fetch", "retrieve", "obtain"]
-  generic_util: ["util", "helper", "common", "misc", "tools"]
-
-# Examples
+  - type: regex
+    pattern: "def (process|handle|update|get|set|manage|do)\\("
+    context: python_generic_functions
+  - type: regex
+    pattern: "function (process|handle|update|get|set|manage|do)\\("
+    context: javascript_generic_functions
+  - type: regex
+    pattern: "(public|private)\\s+\\w+\\s+(process|handle|update|get|set|manage|do)\\("
+    context: java_csharp_generic_methods
 examples:
   bad: |
     # AI generates this - MEANINGLESS FUNCTION NAMES
@@ -134,7 +39,6 @@ examples:
     def calculate(values):
         # Calculate what? Sum? Average? Score?
         return result
-    
   good: |
     # AILint enforces this - INTENTION-REVEALING FUNCTION NAMES
     def transform_user_profile_to_display_format(user_profile):
@@ -162,125 +66,6 @@ examples:
     def calculate_monthly_subscription_revenue(subscriptions):
         # Clear: calculates total monthly recurring revenue
         return sum(sub.monthly_price for sub in subscriptions if sub.is_active)
-
-# Function Naming Patterns
-naming_patterns:
-  crud_operations:
-    bad: ["get", "set", "update", "delete"]
-    good: ["get_user_by_email", "set_user_preferences", "update_account_status", "delete_expired_sessions"]
-    
-  data_processing:
-    bad: ["process", "transform", "convert"]
-    good: ["process_payment_transaction", "transform_csv_to_json", "convert_temperature_to_celsius"]
-    
-  validation:
-    bad: ["validate", "check", "verify"]
-    good: ["validate_email_format", "check_password_strength", "verify_user_permissions"]
-    
-  calculations:
-    bad: ["calculate", "compute", "determine"]
-    good: ["calculate_order_total", "compute_user_engagement_score", "determine_shipping_cost"]
-
-# Action Verb Categories
-action_verbs:
-  creation: ["create", "generate", "build", "construct", "initialize"]
-  retrieval: ["find", "search", "locate", "fetch", "query"]
-  modification: ["update", "modify", "change", "adjust", "revise"]
-  validation: ["validate", "verify", "check", "confirm", "ensure"]
-  calculation: ["calculate", "compute", "determine", "estimate", "measure"]
-  transformation: ["transform", "convert", "parse", "format", "normalize"]
-
-# Language-Specific Adaptations
-language_adaptations:
-  python:
-    prefer: "snake_case with descriptive action verbs"
-    avoid: "single word function names"
-    pattern: "def calculate_user_engagement_score(user_activity):"
-    
-  javascript:
-    prefer: "camelCase with clear behavior description"
-    avoid: "abbreviated function names"
-    pattern: "function calculateUserEngagementScore(userActivity) {"
-    
-  java:
-    prefer: "camelCase with specific action and outcome"
-    avoid: "generic method names in classes"
-    pattern: "public User getUserAccountById(Long userId) {"
-    
-  csharp:
-    prefer: "PascalCase with intention-revealing names"
-    avoid: "ambiguous method names"
-    pattern: "public User GetUserAccountById(int userId) {"
-
-# Domain-Specific Function Naming
-domain_naming:
-  ecommerce:
-    actions: ["place_order", "process_payment", "calculate_shipping", "apply_discount"]
-    avoid: ["process", "handle", "update", "manage"]
-    
-  authentication:
-    actions: ["authenticate_user", "validate_password", "generate_token", "revoke_session"]
-    avoid: ["login", "check", "verify", "process"]
-    
-  data_analysis:
-    actions: ["analyze_user_behavior", "generate_report", "calculate_metrics", "aggregate_data"]
-    avoid: ["analyze", "process", "calculate", "generate"]
-
-# Validation Rules
-validation_rules:
-  no_generic_function_names:
-    forbidden_patterns: ["^(process|handle|update|get|set|manage|do)$"]
-    message: "Generic function name detected, use descriptive action verb with specific outcome"
-    
-  minimum_descriptiveness:
-    required_elements: ["action_verb", "subject", "optional_outcome"]
-    pattern: "action_what_optionally_how_or_why"
-    message: "Function name must describe what action is performed on what subject"
-    
-  behavior_clarity:
-    required: "name clearly indicates function behavior and side effects"
-    message: "Function name doesn't clearly indicate what the function does"
-
-# Function Naming Guidelines
-naming_guidelines:
-  verb_noun_pattern:
-    - "Start with action verb (calculate, validate, transform)"
-    - "Include the subject being acted upon (user, order, payment)"
-    - "Optionally include the outcome or method"
-    
-  avoid_ambiguity:
-    - "Don't use words that can mean multiple things"
-    - "Be specific about what kind of processing/handling"
-    - "Indicate the scope and boundary of the function"
-    
-  reveal_side_effects:
-    - "Include 'save', 'update', 'delete' if function modifies state"
-    - "Use 'get' vs 'find' to indicate caching behavior"
-    - "Include 'validate' if function throws exceptions"
-
-# Success Metrics
-success_metrics:
-  - descriptive_function_naming: "> 95% functions with clear behavioral names"
-  - generic_name_elimination: "< 5% generic function names"
-  - behavior_predictability: "> 90% functions do what their name suggests"
-  - maintenance_improvement: "> 80% easier to understand function purpose"
-
-# Test Cases
-test_cases:
-  - name: "detect_generic_function"
-    input: "function definition with 'def process(data):'"
-    expected_state: "constraint"
-    expected_output: "descriptive function name required"
-    
-  - name: "enforce_behavioral_naming"
-    input: "function request without specific action description"
-    expected_state: "constraint"
-    expected_output: "action verb with subject enforced"
-    
-  - name: "validate_descriptive_function"
-    input: "function with clear behavioral name"
-    expected_state: "complete"
-    expected_output: "descriptive naming validated"
 ---
 
 # Descriptive Function Names
@@ -299,7 +84,7 @@ This rule detects generic function names like 'process', 'handle', 'update' and 
 - AI doesn't understand the specific behavior being implemented
 - No awareness of function's role in business domain
 
-**Solution**: This state machine detects generic function naming and enforces descriptive, behavior-revealing names.
+**Solution**: This rule detects generic function naming and enforces descriptive, behavior-revealing names.
 
 ## ⚡ How It Works
 
